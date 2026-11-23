@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import FAB from './components/FAB';
 
 export default function App() {
   const [count, setCount] = useState<number>(0);
@@ -8,6 +9,12 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text style={styles.textHuge}>{count}</Text>
+      <FAB
+        label="+1"
+        onPress={() => setCount((prev) => prev + 1)}
+        onLongPress={() => setCount(0)}
+        position="right"
+      />
       <StatusBar style="auto" />
     </View>
   );
