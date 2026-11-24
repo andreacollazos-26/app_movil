@@ -4,10 +4,13 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import FAB from './components/FAB';
 
 const STEP_OPTIONS = [1, 5, 10] as const;
+const GOAL = 20;
 
 export default function App() {
   const [count, setCount] = useState<number>(0);
   const [step, setStep] = useState<number>(1);
+  const progress = Math.min((count / GOAL) * 100, 100);
+  const goalReached = count >= GOAL;
 
   return (
     <View style={styles.screen}>
@@ -20,6 +23,31 @@ export default function App() {
 
           <View style={styles.counterBox}>
             <Text style={styles.textHuge}>{count}</Text>
+          </View>
+
+          <View style={styles.goalSection}>
+            <View style={styles.goalHeader}>
+              <Text style={styles.goalLabel}>Meta diaria</Text>
+              <Text style={styles.goalValue}>
+                {count} / {GOAL}
+              </Text>
+            </View>
+            <View style={styles.progressBar}>
+              <View
+                style={[
+                  styles.progressFill,
+                  {
+                    width: `${progress}%`,
+                    backgroundColor: goalReached ? '#16A34A' : '#2563EB',
+                  },
+                ]}
+              />
+            </View>
+            {goalReached && (
+              <View style={styles.goalBadge}>
+                <Text style={styles.goalBadgeText}>¡Meta alcanzada!</Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.stepRow}>
@@ -148,6 +176,48 @@ const styles = StyleSheet.create({
     fontSize: 96,
     fontWeight: 'bold',
     color: '#0F172A',
+  },
+  goalSection: {
+    marginTop: 20,
+  },
+  goalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  goalLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  goalValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  progressBar: {
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: '#E2E8F0',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 999,
+  },
+  goalBadge: {
+    alignSelf: 'center',
+    marginTop: 10,
+    backgroundColor: '#DCFCE7',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+  },
+  goalBadgeText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#16A34A',
   },
   stepRow: {
     flexDirection: 'row',
