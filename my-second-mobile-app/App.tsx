@@ -3,6 +3,12 @@ import { StatusBar } from 'expo-status-bar';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import FAB from './components/FAB';
 
+interface HistoryItem {
+  id: string;
+  action: string;
+  result: number;
+}
+
 const STEP_OPTIONS = [1, 5, 10] as const;
 const GOAL = 20;
 
@@ -10,8 +16,43 @@ export default function App() {
   const [count, setCount] = useState<number>(0);
   const [step, setStep] = useState<number>(1);
   const [isDark, setIsDark] = useState<boolean>(false);
+  const [maxCount, setMaxCount] = useState<number>(0);
+  const [totalTaps, setTotalTaps] = useState<number>(0);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   const progress = Math.min((count / GOAL) * 100, 100);
   const goalReached = count >= GOAL;
+
+  const addHistoryEntry = (action: string, result: number) => {
+    const entry: HistoryItem = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      action,
+      result,
+    };
+    setHistory((prev) => [entry, ...prev].slice(0, 4));
+  };
+
+  const handleIncrement = () => {
+    const nextCount = count + step;
+    setCount(nextCount);
+    setTotalTaps((prev) => prev + 1);
+    setMaxCount((prev) => (nextCount > prev ? nextCount : prev));
+    addHistoryEntry(`+${step}`, nextCount);
+  };
+
+  const handleDecrement = () => {
+    if (count === 0) return;
+    const nextCount = Math.max(0, count - step);
+    setCount(nextCount);
+    setTotalTaps((prev) => prev + 1);
+    addHistoryEntry(`-${step}`, nextCount);
+  };
+
+  const handleReset = () => {
+    if (count === 0) return;
+    setCount(0);
+    setTotalTaps((prev) => prev + 1);
+    addHistoryEntry('Reset', 0);
+  };
 
   const theme = {
     screenBg: isDark ? '#0F172A' : '#F1F5F9',
@@ -148,7 +189,7 @@ export default function App() {
                 variant="secondary"
                 floating={false}
                 disabled={count === 0}
-                onPress={() => setCount((prev) => Math.max(0, prev - step))}
+                onPress={handleDecrement}
               />
             </View>
             <View style={styles.controlItem}>
@@ -157,7 +198,7 @@ export default function App() {
                 variant="danger"
                 floating={false}
                 disabled={count === 0}
-                onPress={() => setCount(0)}
+                onPress={handleReset}
               />
             </View>
             <View style={styles.controlItem}>
@@ -165,8 +206,8 @@ export default function App() {
                 label={`+${step}`}
                 variant="primary"
                 floating={false}
-                onPress={() => setCount((prev) => prev + step)}
-                onLongPress={() => setCount(0)}
+                onPress={handleIncrement}
+                onLongPress={handleReset}
               />
             </View>
           </View>
@@ -174,6 +215,84 @@ export default function App() {
           <Text style={[styles.helperText, { color: theme.textSecondary }]}>
             Tip: mantén presionado el botón + para reiniciar
           </Text>
+
+          <View style={styles.metricsRow}>
+            <View
+              style={[
+                styles.metricCard,
+                { backgroundColor: theme.surfaceBg, borderColor: theme.border },
+              ]}
+            >
+              <Text
+                style={[styles.metricLabel, { color: theme.textSecondary }]}
+              >
+                Máximo alcanzado
+              </Text>
+              <Text style={[styles.metricValue, { color: theme.textPrimary }]}>
+                {maxCount}
+              </Text>
+            </View>
+            <View
+              style={[
+                styles.metricCard,
+                { backgroundColor: theme.surfaceBg, borderColor: theme.border },
+              ]}
+            >
+              <Text
+                style={[styles.metricLabel, { color: theme.textSecondary }]}
+              >
+                Total de toques
+              </Text>
+              <Text style={[styles.metricValue, { color: theme.textPrimary }]}>
+                {totalTaps}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.historySection}>
+            <Text style={[styles.historyTitle, { color: theme.textPrimary }]}>
+              Historial reciente
+            </Text>
+            {history.length === 0 ? (
+              <Text
+                style={[styles.historyEmpty, { color: theme.textSecondary }]}
+              >
+                Sin movimientos aún
+              </Text>
+            ) : (
+              <View style={styles.historyList}>
+                {history.map((item) => (
+                  <View
+                    key={item.id}
+                    style={[
+                      styles.historyItem,
+                      {
+                        backgroundColor: theme.surfaceBg,
+                        borderColor: theme.border,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.historyAction,
+                        { color: theme.textPrimary },
+                      ]}
+                    >
+                      {item.action}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.historyResult,
+                        { color: theme.textSecondary },
+                      ]}
+                    >
+                      → {item.result}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
         </View>
       </ScrollView>
 
@@ -338,5 +457,60 @@ const styles = StyleSheet.create({
     color: '#64748B',
     textAlign: 'center',
     marginTop: 14,
+  },
+  metricsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 20,
+  },
+  metricCard: {
+    flex: 1,
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 12,
+    alignItems: 'center',
+  },
+  metricLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  metricValue: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
+  historySection: {
+    marginTop: 20,
+  },
+  historyTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 10,
+  },
+  historyEmpty: {
+    fontSize: 13,
+    textAlign: 'center',
+    paddingVertical: 8,
+  },
+  historyList: {
+    gap: 8,
+  },
+  historyItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  historyAction: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  historyResult: {
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
