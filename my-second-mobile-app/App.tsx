@@ -9,30 +9,84 @@ const GOAL = 20;
 export default function App() {
   const [count, setCount] = useState<number>(0);
   const [step, setStep] = useState<number>(1);
+  const [isDark, setIsDark] = useState<boolean>(false);
   const progress = Math.min((count / GOAL) * 100, 100);
   const goalReached = count >= GOAL;
 
+  const theme = {
+    screenBg: isDark ? '#0F172A' : '#F1F5F9',
+    cardBg: isDark ? '#1E293B' : '#FFFFFF',
+    surfaceBg: isDark ? '#334155' : '#F8FAFC',
+    border: isDark ? '#334155' : '#E2E8F0',
+    textPrimary: isDark ? '#F8FAFC' : '#0F172A',
+    textSecondary: isDark ? '#94A3B8' : '#64748B',
+  };
+
   return (
-    <View style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.card}>
+    <View style={[styles.screen, { backgroundColor: theme.screenBg }]}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.container,
+          { backgroundColor: theme.screenBg },
+        ]}
+      >
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: theme.cardBg, borderColor: theme.border },
+          ]}
+        >
           <View style={styles.header}>
-            <Text style={styles.title}>Contador Pro</Text>
-            <Text style={styles.subtitle}>React Native + Expo</Text>
+            <View>
+              <Text style={[styles.title, { color: theme.textPrimary }]}>
+                Contador Pro
+              </Text>
+              <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+                React Native + Expo
+              </Text>
+            </View>
+            <Pressable
+              onPress={() => setIsDark((prev) => !prev)}
+              style={({ pressed }) => [
+                styles.themeButton,
+                {
+                  backgroundColor: theme.surfaceBg,
+                  borderColor: theme.border,
+                },
+                pressed && { opacity: 0.75 },
+              ]}
+            >
+              <Text
+                style={[styles.themeButtonText, { color: theme.textPrimary }]}
+              >
+                {isDark ? 'Claro' : 'Oscuro'}
+              </Text>
+            </Pressable>
           </View>
 
-          <View style={styles.counterBox}>
-            <Text style={styles.textHuge}>{count}</Text>
+          <View
+            style={[
+              styles.counterBox,
+              { backgroundColor: theme.surfaceBg, borderColor: theme.border },
+            ]}
+          >
+            <Text style={[styles.textHuge, { color: theme.textPrimary }]}>
+              {count}
+            </Text>
           </View>
 
           <View style={styles.goalSection}>
             <View style={styles.goalHeader}>
-              <Text style={styles.goalLabel}>Meta diaria</Text>
-              <Text style={styles.goalValue}>
+              <Text style={[styles.goalLabel, { color: theme.textSecondary }]}>
+                Meta diaria
+              </Text>
+              <Text style={[styles.goalValue, { color: theme.textPrimary }]}>
                 {count} / {GOAL}
               </Text>
             </View>
-            <View style={styles.progressBar}>
+            <View
+              style={[styles.progressBar, { backgroundColor: theme.border }]}
+            >
               <View
                 style={[
                   styles.progressFill,
@@ -51,7 +105,9 @@ export default function App() {
           </View>
 
           <View style={styles.stepRow}>
-            <Text style={styles.stepLabel}>Incremento:</Text>
+            <Text style={[styles.stepLabel, { color: theme.textSecondary }]}>
+              Incremento:
+            </Text>
             {STEP_OPTIONS.map((option) => {
               const isActive = step === option;
               return (
@@ -62,7 +118,11 @@ export default function App() {
                     styles.stepButton,
                     isActive
                       ? styles.stepButtonActive
-                      : styles.stepButtonInactive,
+                      : {
+                          backgroundColor: isDark
+                            ? theme.surfaceBg
+                            : theme.screenBg,
+                        },
                     pressed && { opacity: 0.75 },
                   ]}
                 >
@@ -71,7 +131,7 @@ export default function App() {
                       styles.stepButtonText,
                       isActive
                         ? styles.stepButtonTextActive
-                        : styles.stepButtonTextInactive,
+                        : { color: theme.textPrimary },
                     ]}
                   >
                     {option}
@@ -111,13 +171,13 @@ export default function App() {
             </View>
           </View>
 
-          <Text style={styles.helperText}>
+          <Text style={[styles.helperText, { color: theme.textSecondary }]}>
             Tip: mantén presionado el botón + para reiniciar
           </Text>
         </View>
       </ScrollView>
 
-      <StatusBar style="auto" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
     </View>
   );
 }
@@ -149,8 +209,20 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 24,
+  },
+  themeButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  themeButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   title: {
     fontSize: 28,
