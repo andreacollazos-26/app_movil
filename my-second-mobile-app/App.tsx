@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import FAB from './components/FAB';
+
+const STEP_OPTIONS = [1, 5, 10] as const;
 
 export default function App() {
   const [count, setCount] = useState<number>(0);
+  const [step, setStep] = useState<number>(1);
 
   return (
     <View style={styles.screen}>
@@ -18,15 +21,74 @@ export default function App() {
           <View style={styles.counterBox}>
             <Text style={styles.textHuge}>{count}</Text>
           </View>
+
+          <View style={styles.stepRow}>
+            <Text style={styles.stepLabel}>Incremento:</Text>
+            {STEP_OPTIONS.map((option) => {
+              const isActive = step === option;
+              return (
+                <Pressable
+                  key={option}
+                  onPress={() => setStep(option)}
+                  style={({ pressed }) => [
+                    styles.stepButton,
+                    isActive
+                      ? styles.stepButtonActive
+                      : styles.stepButtonInactive,
+                    pressed && { opacity: 0.75 },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.stepButtonText,
+                      isActive
+                        ? styles.stepButtonTextActive
+                        : styles.stepButtonTextInactive,
+                    ]}
+                  >
+                    {option}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <View style={styles.controlsRow}>
+            <View style={styles.controlItem}>
+              <FAB
+                label={`-${step}`}
+                variant="secondary"
+                floating={false}
+                disabled={count === 0}
+                onPress={() => setCount((prev) => Math.max(0, prev - step))}
+              />
+            </View>
+            <View style={styles.controlItem}>
+              <FAB
+                label="Reset"
+                variant="danger"
+                floating={false}
+                disabled={count === 0}
+                onPress={() => setCount(0)}
+              />
+            </View>
+            <View style={styles.controlItem}>
+              <FAB
+                label={`+${step}`}
+                variant="primary"
+                floating={false}
+                onPress={() => setCount((prev) => prev + step)}
+                onLongPress={() => setCount(0)}
+              />
+            </View>
+          </View>
+
+          <Text style={styles.helperText}>
+            Tip: mantén presionado el botón + para reiniciar
+          </Text>
         </View>
       </ScrollView>
 
-      <FAB
-        label="+1"
-        onPress={() => setCount((prev) => prev + 1)}
-        onLongPress={() => setCount(0)}
-        position="right"
-      />
       <StatusBar style="auto" />
     </View>
   );
@@ -86,5 +148,53 @@ const styles = StyleSheet.create({
     fontSize: 96,
     fontWeight: 'bold',
     color: '#0F172A',
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 20,
+  },
+  stepLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#475569',
+    marginRight: 4,
+  },
+  stepButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+  },
+  stepButtonActive: {
+    backgroundColor: '#2563EB',
+  },
+  stepButtonInactive: {
+    backgroundColor: '#F1F5F9',
+  },
+  stepButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  stepButtonTextActive: {
+    color: '#FFFFFF',
+  },
+  stepButtonTextInactive: {
+    color: '#0F172A',
+  },
+  controlsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 20,
+  },
+  controlItem: {
+    flex: 1,
+  },
+  helperText: {
+    fontSize: 12,
+    color: '#64748B',
+    textAlign: 'center',
+    marginTop: 14,
   },
 });
